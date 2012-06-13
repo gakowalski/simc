@@ -11,6 +11,7 @@ int main(int argc, char * argv[]) {
 	FILE * xml;
 	long xmlFileSize;
 	long i;
+	int colNumber;
 	int colCounter;
 	char * data;
 	char * current;
@@ -48,12 +49,29 @@ int main(int argc, char * argv[]) {
 		return EXIT_FAILURE;
 	};
 	
+	colNumber	= 0;
+	current		= strstr(data, "<row");
+	tmp 		= strstr(current + 5, "</row>");
+	while (current) {
+		current = strstr(current + 4, "<col");
+		if (current < tmp) {
+			colNumber++;
+		} else {
+			break;
+		}
+	}
+	
 	if (empty_tags) {
 		current = strstr(data, "\"/>");
 		for (i = current - data; current && i < xmlFileSize; i = current - data) {
 			memcpy(current, "\"></col>", 8);
 			current = strstr(current, "\"/>");
 		}
+	}
+	
+	if (!colNumber) {
+		printf("Error reading file: couldn't find <col> tags in first <row> tag!");
+		return EXIT_FAILURE;
 	}
 	
 	current = strstr(data, "<row>");
@@ -72,7 +90,7 @@ int main(int argc, char * argv[]) {
 		i += tmp - current;
 		current = tmp;
 		
-		if (colCounter % 10) {
+		if (colCounter % colNumber) {
 			fputc(';', stdout);
 		} else {
 			fputs("\n", stdout);
