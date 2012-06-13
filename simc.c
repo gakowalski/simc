@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 void die() {
 	perror(NULL);
@@ -14,10 +15,22 @@ int main(int argc, char * argv[]) {
 	char * data;
 	char * current;
 	char * tmp;
+	char * closed_tag;
+	int empty_tags;
 	
 	if (argc == 1) {
-		printf("Usage: %s [filename]\n", argv[0]);
+		printf("SIMC.XML to CSV converter (C) grzegorz.kowalski@wit.edu.pl\n");
+		printf("Usage: %s [filename] [options] > [output_filename]\n", argv[0]);
+		printf("Options: \n\t--empty-tags\tEnable processing of empty tags\n");
 		return EXIT_SUCCESS;
+	}
+	
+	empty_tags = 0;
+	
+	if (argc == 3) {
+		if (strcmp(argv[2], "--empty-tags") == 0) {
+			empty_tags = 1;
+		}
 	}
 	
 	xml = fopen(argv[1], "rb");
@@ -35,7 +48,13 @@ int main(int argc, char * argv[]) {
 		return EXIT_FAILURE;
 	};
 	
-	//xmlFileSize = 200;
+	if (empty_tags) {
+		current = strstr(data, "\"/>");
+		for (i = current - data; current && i < xmlFileSize; i = current - data) {
+			memcpy(current, "\"></col>", 8);
+			current = strstr(current, "\"/>");
+		}
+	}
 	
 	current = strstr(data, "<row>");
 	if (!current) {
